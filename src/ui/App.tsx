@@ -1,18 +1,23 @@
 import { useState, useEffect } from 'react'
 import reactLogo from './assets/react.svg'
 import catLogo from './../../desktopIcon.png'
+import { BaseChart } from './BaseChart'
 import './App.css'
 
 function App() {
   const [count, setCount] = useState(0)
 
   useEffect(() => {
-    window.electron.subscribeStatistics(stats => console.log(stats))
+    const unsub = window.electron.subscribeStatistics(stats => console.log(stats));
+    return unsub;
   }, [])
 
   return (
     <>
-      <div>
+      <div className="App">
+        <div style={{ height: 120 }}>
+          <BaseChart data={[{ value: 25 }, { value: 30 }, { value: 100 }]}></BaseChart>
+        </div>
         <a href="https://react.dev" target="_blank">
           <img src={catLogo} className="logo react" alt="Cat logo" />
         </a>
