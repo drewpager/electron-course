@@ -1,22 +1,22 @@
-import { useState, useEffect } from 'react'
+import { useMemo, useState } from 'react'
 import reactLogo from './assets/react.svg'
 import catLogo from './../../desktopIcon.png'
-import { BaseChart } from './BaseChart'
 import './App.css'
+import { useStatistics } from './useStatistics'
+import { Chart } from './chart'
 
 function App() {
   const [count, setCount] = useState(0)
+  const statistics = useStatistics(10);
+  const cpuUsages = useMemo(() => statistics.map((stat) => stat.cpuUsage), [statistics])
 
-  useEffect(() => {
-    const unsub = window.electron.subscribeStatistics(stats => console.log(stats));
-    return unsub;
-  }, [])
+  console.log(statistics)
 
   return (
     <>
       <div className="App">
         <div style={{ height: 120 }}>
-          <BaseChart data={[{ value: 25 }, { value: 30 }, { value: 100 }]}></BaseChart>
+          <Chart data={cpuUsages} maxDataPoints={10} />
         </div>
         <a href="https://react.dev" target="_blank">
           <img src={catLogo} className="logo react" alt="Cat logo" />

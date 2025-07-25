@@ -13,3 +13,7 @@ export function getPreloadPath() {
 export function getUIPath() {
   return path.join(app.getAppPath(), "/dist-react/index.hmtl");
 }
+
+export function getAssetPath() {
+  return path.join(app.getAppPath(), isDev() ? "." : "..", "/src/icons");
+}
