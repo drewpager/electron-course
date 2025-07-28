@@ -1,14 +1,16 @@
-import { app, BrowserWindow, Tray } from "electron";
-import { ipcMainHandle, isDev } from "./utils.js";
+import { app, BrowserWindow } from "electron";
+import { ipcMainHandle, ipcMainOn, isDev } from "./utils.js";
 import { pollResources, getStaticData } from "./resourceManager.js";
-import { getAssetPath, getPreloadPath, getUIPath } from "./pathResolver.js";
-import path from "path";
+import { getPreloadPath, getUIPath } from "./pathResolver.js";
+import { createTray } from "./tray.js";
+import { createMenu } from "./menu.js";
 
 app.on("ready", () => {
   const mainWindow = new BrowserWindow({
     webPreferences: {
       preload: getPreloadPath(),
     },
+    frame: false,
   });
   if (isDev()) {
     mainWindow.loadURL("http://localhost:5123");
@@ -22,15 +24,45 @@ app.on("ready", () => {
     return getStaticData();
   });
 
-  new Tray(
-    path.join(
-      getAssetPath(),
-      // Windows process.platform === "win32"
-      process.platform === "darwin" ? "trayIcon.png" : "trayIcon.png"
-    )
-  );
+  ipcMainOn("sendFrameAction", (action) => {
+    switch (action) {
+      case "CLOSE":
+        mainWindow.close();
+        break;
+      case "MAXIMIZE":
+        mainWindow.maximize();
+        break;
+      case "MINIMIZE":
+        mainWindow.minimize();
+        break;
+    }
+  });
+
+  createTray(mainWindow);
+
+  handleCloseEvents(mainWindow);
+  createMenu(mainWindow);
+});
+
+function handleCloseEvents(mainWindow: BrowserWindow) {
+  let willClose = false;
 
   mainWindow.on("close", (e) => {
+    if (willClose) {
+      return;
+    }
     e.preventDefault();
+    mainWindow.hide();
+    if (app.dock) {
+      app.dock.hide();
+    }
   });
-});
+
+  app.on("before-quit", () => {
+    willClose = true;
+  });
+
+  mainWindow.on("show", () => {
+    willClose = false;
+  });
+}

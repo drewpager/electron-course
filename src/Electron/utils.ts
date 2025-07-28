@@ -18,6 +18,17 @@ export function ipcMainHandle<Key extends keyof EventPayloadMapping>(
   });
 }
 
+export function ipcMainOn<Key extends keyof EventPayloadMapping>(
+  key: Key,
+  handler: (action: EventPayloadMapping[Key]) => void
+) {
+  ipcMain.on(key, (event: Event, action) => {
+    // @ts-expect-error event.senderFrame
+    validateEventFrame(event.senderFrame);
+    return handler(action);
+  });
+}
+
 export function ipcWebContentsSend<Key extends keyof EventPayloadMapping>(
   key: Key,
   webContents: WebContents,
@@ -28,7 +39,7 @@ export function ipcWebContentsSend<Key extends keyof EventPayloadMapping>(
 
 export function validateEventFrame(frame: WebFrameMain) {
   console.log(frame.url);
-  if (isDev() && new URL(frame.url).host === "localhost:5125") {
+  if (isDev() && new URL(frame.url).host === "localhost:5123") {
     return;
   }
   if (frame.url !== pathToFileURL(getUIPath()).toString()) {
